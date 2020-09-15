@@ -1,88 +1,50 @@
-export type DropdownFieldCodename = string;
-export type AnalyzerChartIDType = string;
-export type Radians = number;
-
-export interface AnalyzerField {
-    fieldName: string;
-}
-
-export interface yValuesPerXValue {
-    key: DropdownFieldCodename,
-    values: { [key: string]: number },
-}
-
-export interface PieSliceData {
-    percentInAngles: Radians;
-    rotateBy: Radians;
-
-    // left-side legend
-    fieldName: DropdownFieldCodename;
-    label: string;
-
-    // pie slice label
-    value: number | null; // value shown on slice label; the raw data
-    labelAt: string; // location of slice label
-    extraSmall: boolean; // shrink font if slice is thin
-}
-
 export class PieChart extends HTMLElement {
-    // properties (inputs)
-    data: yValuesPerXValue[] = [{ key: '5', values: { columnValue: 5 } }];
-    chartDivElementId: AnalyzerChartIDType = 'svgPie';
-    yFields: AnalyzerField[] = [{ fieldName: 'columnValue' }];
-    selectedYFields: DropdownFieldCodename[] = [];
-    colors = ["Blue ", "LimeGreen", "Red", "OrangeRed", "Indigo", "Yellow", "DarkMagenta", "Orange", "Crimson", "DeepSkyBlue", "DeepPink", "LightSeaGreen", '#4751e9', "#dc3912", '#00b862', '#ff5722', '#2196f3', '#eeeb0c', "#0e8816", "#910291", '#ff9800', '#ff4514'];
-
-    // child component
-    tooltipComponent = { hideTip: () => void 0, showTip: (...rest: any[]) => console.log(rest) };
-
-    // events
-    drilldown = { next: (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldwon', { detail: yPerX })) };
-
-    // private
-    selectedYField: AnalyzerField;
-    yFieldName: string;
-    slices: PieSliceData[] = [];
-    hoveringOver: number = -1;
-    readonly fullCircle: Radians = 2 * Math.PI;
-    readonly radius = this.fullCircle / (2 * Math.PI);
-    readonly diameter = this.radius * 2;
-    readonly radiansToDegrees = 180 / Math.PI;
-    readonly degreesToRadians = Math.PI / 180;
-    readonly fontScalingFactor = 0.015;         // TODO: I eyeballed this value.
-    readonly rotateEntirePie: Radians = Math.PI / 2;
-    readonly labelDistanceFromCenter = this.radius * 1.5;
-
+    constructor() {
+        super(...arguments);
+        this.data = [{ key: '5', values: { columnValue: 5 } }];
+        this.chartDivElementId = 'svgPie';
+        this.yFields = [{ fieldName: 'columnValue' }];
+        this.selectedYFields = [];
+        this.colors = ["Blue ", "LimeGreen", "Red", "OrangeRed", "Indigo", "Yellow", "DarkMagenta", "Orange", "Crimson", "DeepSkyBlue", "DeepPink", "LightSeaGreen", '#4751e9', "#dc3912", '#00b862', '#ff5722', '#2196f3', '#eeeb0c', "#0e8816", "#910291", '#ff9800', '#ff4514'];
+        this.tooltipComponent = { hideTip: () => void 0, showTip: (...rest) => console.log(rest) };
+        this.drilldown = { next: (yPerX) => this.dispatchEvent(new CustomEvent('drilldwon', { detail: yPerX })) };
+        this.slices = [];
+        this.hoveringOver = -1;
+        this.fullCircle = 2 * Math.PI;
+        this.radius = this.fullCircle / (2 * Math.PI);
+        this.diameter = this.radius * 2;
+        this.radiansToDegrees = 180 / Math.PI;
+        this.degreesToRadians = Math.PI / 180;
+        this.fontScalingFactor = 0.015;
+        this.rotateEntirePie = Math.PI / 2;
+        this.labelDistanceFromCenter = this.radius * 1.5;
+    }
     connectedCallback() {
-        //this.attachShadow({ mode: 'open' });
         this.refresh();
     }
-
     attributeChangedCallback() {
         this.refresh();
     }
-
     refresh() {
-        if (this.selectedYFields.length === 0) this.selectedYFields = this.yFields.slice(0, 3).filter(f => f).map(f => f.fieldName);
+        if (this.selectedYFields.length === 0)
+            this.selectedYFields = this.yFields.slice(0, 3).filter(f => f).map(f => f.fieldName);
         this.selectedYField = this.yFields.find(af => this.selectedYFields.indexOf(af.fieldName) >= 0) || this.yFields[0];
-        this.yFieldName = <string>this.selectedYField.fieldName;
-
-        this.data = this.data.sort((a, b) => b.values[this.yFieldName] - a.values[this.yFieldName]); // sort values biggest first
-
+        this.yFieldName = this.selectedYField.fieldName;
+        this.data = this.data.sort((a, b) => b.values[this.yFieldName] - a.values[this.yFieldName]);
         let sum = this.data.reduce((sum, each) => sum + each.values[this.yFieldName], 0);
-        let runningSumOfAngles: Radians = 0;
-        this.slices = this.data.map((datum: yValuesPerXValue) => {
+        let runningSumOfAngles = 0;
+        this.slices = this.data.map((datum) => {
             let v = datum.values[this.yFieldName] || 0;
             let percent = v / sum;
-            let percentInRadians: Radians = percent * this.fullCircle;
-            let angleToMiddleOfSlice: Radians = runningSumOfAngles - this.rotateEntirePie + (percentInRadians / 2);
+            let percentInRadians = percent * this.fullCircle;
+            let angleToMiddleOfSlice = runningSumOfAngles - this.rotateEntirePie + (percentInRadians / 2);
             let percentSizeNeededForLabelLength = v.toString().length / 100;
-            let s: PieSliceData = {
+            let s = {
                 percentInAngles: percentInRadians,
                 rotateBy: runningSumOfAngles,
-                label: datum.key,       // legend
-                fieldName: datum.key,   // legend
-                value: (percent > percentSizeNeededForLabelLength) ? v : null, // omit slice's label unless > 1%
+                label: datum.key,
+                fieldName: datum.key,
+                value: (percent > percentSizeNeededForLabelLength) ? v : null,
                 extraSmall: (percent < 0.04 + percentSizeNeededForLabelLength),
                 labelAt: this.polarCoordinatesToRectilinearCoordinates(angleToMiddleOfSlice),
             };
@@ -91,87 +53,73 @@ export class PieChart extends HTMLElement {
         });
         this.innerHTML = template(this);
     }
-
-    private polarCoordinatesToRectilinearCoordinates(angle: Radians, distanceFromCenter: number = this.labelDistanceFromCenter): string {
+    polarCoordinatesToRectilinearCoordinates(angle, distanceFromCenter = this.labelDistanceFromCenter) {
         return (distanceFromCenter * Math.cos(angle)) + "," + (distanceFromCenter * Math.sin(angle));
     }
-
-    private rectilinearCoordinatesToPolarCoordinates(x: number, y: number): Radians {
+    rectilinearCoordinatesToPolarCoordinates(x, y) {
         let angle = Math.atan2(y, x) + this.rotateEntirePie;
-        if (angle < 0) angle += this.fullCircle;
-        return angle;   // distance isn't needed so just calc the angle and return
+        if (angle < 0)
+            angle += this.fullCircle;
+        return angle;
     }
-
-    private getMouseCoordinatesRelativeToCircleCenter(event: MouseEvent): { x: number, y: number } {
-        let svgElement = <SVGSVGElement>(<HTMLElement>this).getElementsByTagName('svg')[0];
+    getMouseCoordinatesRelativeToCircleCenter(event) {
+        let svgElement = this.getElementsByTagName('svg')[0];
         let bbox = svgElement.getBoundingClientRect();
-        let x = event.clientX - bbox.left - svgElement.clientHeight / 2; // clientHeight because aspect ratio keeps it square and IE11 is IE11
+        let x = event.clientX - bbox.left - svgElement.clientHeight / 2;
         let y = event.clientY - bbox.top - svgElement.clientHeight / 2;
-        return { x: x, y: y }; // returns 0,0 when mouse cursor is at center of circle, etc.
+        return { x: x, y: y };
     }
-
-    // returned index is for this.data and for this.slices
-    private mouseToIndex(event: MouseEvent): number {
+    mouseToIndex(event) {
         let mouseAt = this.getMouseCoordinatesRelativeToCircleCenter(event);
-        let angle: Radians = this.rectilinearCoordinatesToPolarCoordinates(mouseAt.x, mouseAt.y);
+        let angle = this.rectilinearCoordinatesToPolarCoordinates(mouseAt.x, mouseAt.y);
         let i = this.slices.findIndex(s => s.rotateBy > angle);
         return i < 0 ? this.slices.length - 1 : i - 1;
     }
-
-    hoverSlice(event: MouseEvent) {
+    hoverSlice(event) {
         let i = this.mouseToIndex(event);
         return this.selectArea(this.data[i], i);
     }
-
-    clickSlice(event: MouseEvent) {
+    clickSlice(event) {
         let i = this.mouseToIndex(event);
         this.tooltipComponent.hideTip();
         this.drilldown.next(this.data[i]);
     }
-
-    private selectArea(d: yValuesPerXValue, i: number) {
+    selectArea(d, i) {
         this.hoveringOver = i;
         this.tooltipComponent.showTip(d.key, d.values, this.yFields);
     }
-
     deselectArea() {
         this.hoveringOver = -1;
         this.tooltipComponent.hideTip();
     }
-
-    // Legend for x-axis /////////////
-
-    onDrilldown(value: string) {
-        if (!value) return;
+    onDrilldown(value) {
+        if (!value)
+            return;
         let item = this.data.find(d => d.key === value);
-        if (!item) return;
+        if (!item)
+            return;
         this.tooltipComponent.hideTip();
         this.drilldown.next(item);
     }
-
-    onMouseEnterLegend(value: string) {
-        if (!value) return;
+    onMouseEnterLegend(value) {
+        if (!value)
+            return;
         let item = this.data.find(d => d.key === value);
-        if (!item) return;
+        if (!item)
+            return;
         let i = this.slices.findIndex(x => x.fieldName === value);
         this.selectArea(item, i);
     }
-
-    onMouseLeaveLegend(value: string) {
+    onMouseLeaveLegend(value) {
         this.deselectArea();
     }
-
-    // Legend for y-axis /////////////
-
-    onFieldSelect(fieldnames: DropdownFieldCodename[]) {
+    onFieldSelect(fieldnames) {
         this.selectedYFields = fieldnames;
         this.refresh();
     }
 }
-
-
-function template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, chartDivElementId, yFields }: PieChart) {
-    return /*html*/`
+function template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, chartDivElementId, yFields }) {
+    return `
          
             <div id="svgPie" class="wholeChart">
                 <!--<chart-legend *ngIf="slices && slices.length"
@@ -198,7 +146,7 @@ function template({ data, diameter, fullCircle, slices, radius, colors, rotateEn
                             </circle>
                         `).join('')}
                             ${hoveringOver > -1 && slices[hoveringOver]
-                ? /*html*/`
+        ? `
                 <circle id="fadeoutOverlay" cx="0" cy="0" r="${diameter}" fill-opacity="0.45" fill="white"></circle>
                 <circle id="highlightedSlice"
                         cx="0" cy="0" r="${radius}"
@@ -208,11 +156,11 @@ function template({ data, diameter, fullCircle, slices, radius, colors, rotateEn
                 </circle>
         ` : ""}
                         </g>
-                        ${slices.map(slice => !slice.value ? "" : /*html*/`<text transform="translate(${slice.labelAt}) scale(${slice.extraSmall ? fontScalingFactor / 2 : fontScalingFactor})" class="pieLabel" text-anchor="middle">${slice.value}</text>`).join('')}
+                        ${slices.map(slice => !slice.value ? "" : `<text transform="translate(${slice.labelAt}) scale(${slice.extraSmall ? fontScalingFactor / 2 : fontScalingFactor})" class="pieLabel" text-anchor="middle">${slice.value}</text>`).join('')}
                         <circle id="hitbubble" cx="0" cy="0" r="${diameter}" fill-opacity="0" (mousemove)="hoverSlice($event)" (mouseleave)="deselectArea()" (click)="clickSlice($event)"></circle>
                         <circle id="donutHole" cx="0" cy="0" r="${radius / 2}" fill="white"></circle>
                     </svg>
-                    `: ''}
+                    ` : ''}
                 <!--<chart-legend *ngIf="yFields && yFields.length"
                         chartId="${chartDivElementId}yAxis"
                         [right]="10"
@@ -250,6 +198,4 @@ function template({ data, diameter, fullCircle, slices, radius, colors, rotateEn
          
     `;
 }
-
 customElements.define('pie-chart', PieChart);
-
