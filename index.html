@@ -14,6 +14,11 @@
 
     <script type="module" src="./chart-legend.js"></script>
     <script type="module" src="./pie-chart.js"></script>
-    <script type="module" src="./index.js"></script>
+
+    <script type="module">
+      import { listen } from "./message-bus.js";
+
+      listen("drilldown", "chart-legend");
+    </script>
   </body>
 </html>

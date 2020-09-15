@@ -49,7 +49,7 @@ export class PieChart extends HTMLElement {
 
     // events
     drilldown = {
-        next: (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldown', { detail: yPerX })),
+        next: (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true })),
     };
 
     // private
@@ -107,11 +107,11 @@ export class PieChart extends HTMLElement {
         hitbubble?.addEventListener('mousemove', e => this.hoverSlice.bind(this)(e as MouseEvent));
         hitbubble?.addEventListener('mouseleave', this.deselectArea.bind(this));
         hitbubble?.addEventListener('click', e => this.clickSlice.bind(this)(e as MouseEvent));
-        const legends: NodeListOf<ChartLegend> = this.querySelectorAll('chart-legend');
-        legends.forEach(legend => {
-            legend.fields = this.slices;
-            legend.colors = this.colors;
-        });
+        // const legends: NodeListOf<ChartLegend> = this.querySelectorAll('chart-legend');
+        // legends.forEach(legend => {
+        //     legend.fields = this.slices;
+        //     legend.colors = this.colors;
+        // });
     }
 
     private polarCoordinatesToRectilinearCoordinates(angle: Radians, distanceFromCenter: number = this.labelDistanceFromCenter): string {

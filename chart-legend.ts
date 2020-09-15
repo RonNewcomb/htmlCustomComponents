@@ -17,6 +17,15 @@ export class ChartLegend extends HTMLElement {
 
     connectedCallback() {
         this.attachShadow({ mode: 'open' });
+        this.addEventListener('drilldown', this.propertyChangedCallback.bind(this));
+    }
+
+    propertyChangedCallback(e: Event | CustomEvent) {
+        console.log('chart-legend got', e);
+        if (!(e instanceof CustomEvent)) return;
+        this.fields = e.detail.fields;
+        this.colors = e.detail.colors;
+        console.log('chart-legend set');
     }
 
     render() {
@@ -33,11 +42,12 @@ function template({ chartId, fields, colors }: ChartLegend) {
     .swatch {
         display: inline-block;
         height: 1em;
-        width:2em;
-        color:lightgray;         
+        width: 2em;
+        margin-right: 1em;
+        color: lightgray;
     }
 </style>
-    `;
+`;
 }
 
 customElements.define('chart-legend', ChartLegend);
