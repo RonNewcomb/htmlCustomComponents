@@ -170,7 +170,7 @@ export class PieChart extends HTMLElement {
 }
 
 
-function template({ diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, chartDivElementId, yFields }: PieChart) {
+function template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, chartDivElementId, yFields }: PieChart) {
     return /*html*/`
         <template>
             <div id="svgPie" class="wholeChart">
@@ -187,34 +187,32 @@ function template({ diameter, fullCircle, slices, radius, colors, rotateEntirePi
                         (mouseenter)="onMouseEnterLegend($event)"
                         (mouseleave)="onMouseLeaveLegend($event)">
                 </chart-legend>-->
-                <ng-container *ngIf="data && data.length && radius && diameter">
-                    <svg height="100%" attr.viewBox="-${diameter}, -${diameter}, ${2 * diameter}, ${2 * diameter}" preserveAspectRatio="xMinYMid meet">
-                        <g attr.stroke-width="${diameter}" fill="none" attr.transform="rotate(-${rotateEntirePie * radiansToDegrees})">
-                            <circle *ngFor="let slice of slices; let i = index;"
-                                    cx="0" cy="0" attr.r="${radius}"
-                                    attr.stroke="${colors[i % colors.length]}"
-                                    attr.stroke-dasharray="${slice.percentInAngles} ${fullCircle}"
-                                    attr.transform="rotate(${slice.rotateBy * radiansToDegrees})">
+                ${data && data.length && radius && diameter ? `
+                    <svg height="100%" viewBox="-${diameter}, -${diameter}, ${2 * diameter}, ${2 * diameter}" preserveAspectRatio="xMinYMid meet">
+                        <g stroke-width="${diameter}" fill="none" transform="rotate(-${rotateEntirePie * radiansToDegrees})">
+                        ${slices.map((slice, i) => `
+                            <circle cx="0" cy="0" r="${radius}"
+                                    stroke="${colors[i % colors.length]}"
+                                    stroke-dasharray="${slice.percentInAngles} ${fullCircle}"
+                                    transform="rotate(${slice.rotateBy * radiansToDegrees})">
                             </circle>
-                            <ng-container *ngIf="hoveringOver > -1 && slices[hoveringOver]">
-                                <circle id="fadeoutOverlay" cx="0" cy="0" attr.r="${diameter}" fill-opacity="0.45" fill="white"></circle>
-                                <circle id="highlightedSlice"
-                                        cx="0" cy="0" attr.r="${radius}"
-                                        attr.stroke="${colors[hoveringOver % colors.length]}"
-                                        attr.stroke-dasharray="${slices[hoveringOver].percentInAngles} ${fullCircle}"
-                                        attr.transform="rotate(${slices[hoveringOver].rotateBy * radiansToDegrees})">
-                                </circle>
-                            </ng-container>
+                        `).join('')}
+                            ${hoveringOver > -1 && slices[hoveringOver]
+                ? /*html*/`
+                <circle id="fadeoutOverlay" cx="0" cy="0" r="${diameter}" fill-opacity="0.45" fill="white"></circle>
+                <circle id="highlightedSlice"
+                        cx="0" cy="0" r="${radius}"
+                        stroke="${colors[hoveringOver % colors.length]}"
+                        stroke-dasharray="${slices[hoveringOver].percentInAngles} ${fullCircle}"
+                        transform="rotate(${slices[hoveringOver].rotateBy * radiansToDegrees})">
+                </circle>
+        ` : ""}
                         </g>
-                        <ng-container *ngFor="let slice of slices">
-                            <text *ngIf="slice.value"
-                                attr.transform="translate(${slice.labelAt}) scale(${slice.extraSmall ? fontScalingFactor / 2 : fontScalingFactor})"
-                                class="pieLabel" text-anchor="middle">{{slice.value}}</text>
-                        </ng-container>
-                        <circle id="hitbubble" cx="0" cy="0" attr.r="${diameter}" fill-opacity="0" (mousemove)="hoverSlice($event)" (mouseleave)="deselectArea()" (click)="clickSlice($event)"></circle>
-                        <circle id="donutHole" cx="0" cy="0" attr.r="${radius / 2}" fill="white"></circle>
+                        ${slices.map(slice => !slice.value ? "" : /*html*/`<text transform="translate(${slice.labelAt}) scale(${slice.extraSmall ? fontScalingFactor / 2 : fontScalingFactor})" class="pieLabel" text-anchor="middle">${slice.value}</text>`).join('')}
+                        <circle id="hitbubble" cx="0" cy="0" r="${diameter}" fill-opacity="0" (mousemove)="hoverSlice($event)" (mouseleave)="deselectArea()" (click)="clickSlice($event)"></circle>
+                        <circle id="donutHole" cx="0" cy="0" r="${radius / 2}" fill="white"></circle>
                     </svg>
-                </ng-container>
+                    `: ''}
                 <!--<chart-legend *ngIf="yFields && yFields.length"
                         chartId="${chartDivElementId}yAxis"
                         [right]="10"
