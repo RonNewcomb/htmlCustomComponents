@@ -1,3 +1,5 @@
+import { ChartLegend } from "./chart-legend.js";
+
 export type DropdownFieldCodename = string;
 export type AnalyzerChartIDType = string;
 export type Radians = number;
@@ -26,18 +28,29 @@ export interface PieSliceData {
 }
 
 export class PieChart extends HTMLElement {
-    // properties (inputs)
-    data: yValuesPerXValue[] = [{ key: '5', values: { columnValue: 5 } }];
-    chartDivElementId: AnalyzerChartIDType = 'svgPie';
-    yFields: AnalyzerField[] = [{ fieldName: 'columnValue' }];
-    selectedYFields: DropdownFieldCodename[] = [];
+    // required inputs
+    yFields: AnalyzerField[] = [{ fieldName: 'popularity' }];
+    data: yValuesPerXValue[] = [
+        { key: 'Angular', values: { popularity: 5 } },
+        { key: 'React', values: { popularity: 8 } },
+        { key: 'HTML Custom Elements', values: { popularity: 2 } },
+    ];
+
+    // optional inputs
     colors = ["Blue ", "LimeGreen", "Red", "OrangeRed", "Indigo", "Yellow", "DarkMagenta", "Orange", "Crimson", "DeepSkyBlue", "DeepPink", "LightSeaGreen", '#4751e9', "#dc3912", '#00b862', '#ff5722', '#2196f3', '#eeeb0c', "#0e8816", "#910291", '#ff9800', '#ff4514'];
+    selectedYFields: DropdownFieldCodename[] = [];
+    chartDivElementId: AnalyzerChartIDType = new Date().getTime().toString();
 
     // child component
-    tooltipComponent = { hideTip: () => void 0, showTip: (...rest: any[]) => console.log(rest) };
+    tooltipComponent = {
+        hideTip: () => void 0,
+        showTip: (...rest: any[]) => console.log(rest),
+    };
 
     // events
-    drilldown = { next: (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldwon', { detail: yPerX })) };
+    drilldown = {
+        next: (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldown', { detail: yPerX })),
+    };
 
     // private
     selectedYField: AnalyzerField;
@@ -54,13 +67,13 @@ export class PieChart extends HTMLElement {
     readonly labelDistanceFromCenter = this.radius * 1.5;
 
     connectedCallback() {
-        //this.attachShadow({ mode: 'open' });
+        //this.attachShadow({ mode: 'open' }); // SVG doesn't work in ShadowDOM
         this.refresh();
     }
 
-    attributeChangedCallback() {
-        this.refresh();
-    }
+    // attributeChangedCallback() {
+    //     this.refresh();
+    // }
 
     refresh() {
         if (this.selectedYFields.length === 0) this.selectedYFields = this.yFields.slice(0, 3).filter(f => f).map(f => f.fieldName);
@@ -90,6 +103,15 @@ export class PieChart extends HTMLElement {
             return s;
         });
         this.innerHTML = template(this);
+        const hitbubble = this.querySelector('#hitbubble');
+        hitbubble?.addEventListener('mousemove', e => this.hoverSlice.bind(this)(e as MouseEvent));
+        hitbubble?.addEventListener('mouseleave', this.deselectArea.bind(this));
+        hitbubble?.addEventListener('click', e => this.clickSlice.bind(this)(e as MouseEvent));
+        const legends: NodeListOf<ChartLegend> = this.querySelectorAll('chart-legend');
+        legends.forEach(legend => {
+            legend.fields = this.slices;
+            legend.colors = this.colors;
+        });
     }
 
     private polarCoordinatesToRectilinearCoordinates(angle: Radians, distanceFromCenter: number = this.labelDistanceFromCenter): string {
@@ -172,83 +194,84 @@ export class PieChart extends HTMLElement {
 
 function template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, chartDivElementId, yFields }: PieChart) {
     return /*html*/`
-         
-            <div id="svgPie" class="wholeChart">
-                <!--<chart-legend *ngIf="slices && slices.length"
-                        chartId="${chartDivElementId}xAxis"
-                        [left]="10"
-                        [top]="20"
-                        [colors]="colors"
-                        [fields]="slices"
-                        [selectable]="false"
-                        [canMultiselect]="false"
-                        [hoveringOver]="hoveringOver"
-                        (drilldown)="onDrilldown($event)"
-                        (mouseenter)="onMouseEnterLegend($event)"
-                        (mouseleave)="onMouseLeaveLegend($event)">
-                </chart-legend>-->
-                ${data && data.length && radius && diameter ? `
-                    <svg height="100%" viewBox="-${diameter}, -${diameter}, ${2 * diameter}, ${2 * diameter}" preserveAspectRatio="xMinYMid meet">
-                        <g stroke-width="${diameter}" fill="none" transform="rotate(-${rotateEntirePie * radiansToDegrees})">
-                        ${slices.map((slice, i) => `
-                            <circle cx="0" cy="0" r="${radius}"
-                                    stroke="${colors[i % colors.length]}"
-                                    stroke-dasharray="${slice.percentInAngles} ${fullCircle}"
-                                    transform="rotate(${slice.rotateBy * radiansToDegrees})">
-                            </circle>
-                        `).join('')}
-                            ${hoveringOver > -1 && slices[hoveringOver]
-                ? /*html*/`
-                <circle id="fadeoutOverlay" cx="0" cy="0" r="${diameter}" fill-opacity="0.45" fill="white"></circle>
-                <circle id="highlightedSlice"
-                        cx="0" cy="0" r="${radius}"
-                        stroke="${colors[hoveringOver % colors.length]}"
-                        stroke-dasharray="${slices[hoveringOver].percentInAngles} ${fullCircle}"
-                        transform="rotate(${slices[hoveringOver].rotateBy * radiansToDegrees})">
+<div id="svgPie" class="wholeChart">
+    ${slices && slices.length ? /*html*/`
+        <chart-legend
+            chartId="${chartDivElementId}xAxis"
+            [left]="10"
+            [top]="20"
+            [colors]="colors"
+            [fields]="slices"
+            [selectable]="false"
+            [canMultiselect]="false"
+            [hoveringOver]="hoveringOver"
+            (drilldown)="onDrilldown($event)"
+            (mouseenter)="onMouseEnterLegend($event)"
+            (mouseleave)="onMouseLeaveLegend($event)">
+        </chart-legend>
+    ` : ``}
+    ${data && data.length && radius && diameter ? `
+        <svg height="100%" viewBox="-${diameter}, -${diameter}, ${2 * diameter}, ${2 * diameter}" preserveAspectRatio="xMinYMid meet">
+            <g stroke-width="${diameter}" fill="none" transform="rotate(-${rotateEntirePie * radiansToDegrees})">
+            ${slices.map((slice, i) => /*html*/`
+                <circle cx="0" cy="0" r="${radius}"
+                        stroke="${colors[i % colors.length]}"
+                        stroke-dasharray="${slice.percentInAngles} ${fullCircle}"
+                        transform="rotate(${slice.rotateBy * radiansToDegrees})">
                 </circle>
-        ` : ""}
-                        </g>
-                        ${slices.map(slice => !slice.value ? "" : /*html*/`<text transform="translate(${slice.labelAt}) scale(${slice.extraSmall ? fontScalingFactor / 2 : fontScalingFactor})" class="pieLabel" text-anchor="middle">${slice.value}</text>`).join('')}
-                        <circle id="hitbubble" cx="0" cy="0" r="${diameter}" fill-opacity="0" (mousemove)="hoverSlice($event)" (mouseleave)="deselectArea()" (click)="clickSlice($event)"></circle>
-                        <circle id="donutHole" cx="0" cy="0" r="${radius / 2}" fill="white"></circle>
-                    </svg>
-                    `: ''}
-                <!--<chart-legend *ngIf="yFields && yFields.length"
-                        chartId="${chartDivElementId}yAxis"
-                        [right]="10"
-                        [top]="20"
-                        [fields]="${yFields}"
-                        [selectable]="true"
-                        [canMultiselect]="false"
-                        [colors]="['transparent']"
-                        (select)="onFieldSelect($event)">
-                </chart-legend>-->
-                <!--<y-fields-tooltip [hidden]="${!yFields}" [fieldMetadata]="${yFields}"></y-fields-tooltip>-->
-            </div>
-            <style>
-                .wholeChart {
-                    width: 100%;
-                    height: 100%;
-                    margin-left: 25%;
-                }
+            `).join('')}
+                ${hoveringOver > -1 && slices[hoveringOver]
+                ? /*html*/`
+                    <circle id="fadeoutOverlay" cx="0" cy="0" r="${diameter}" fill-opacity="0.45" fill="white"></circle>
+                    <circle id="highlightedSlice"
+                            cx="0" cy="0" r="${radius}"
+                            stroke="${colors[hoveringOver % colors.length]}"
+                            stroke-dasharray="${slices[hoveringOver].percentInAngles} ${fullCircle}"
+                            transform="rotate(${slices[hoveringOver].rotateBy * radiansToDegrees})">
+                    </circle>
+                ` : ""}
+            </g>
+            ${slices.map(slice => !slice.value ? "" : /*html*/`<text transform="translate(${slice.labelAt}) scale(${slice.extraSmall ? fontScalingFactor / 2 : fontScalingFactor})" class="pieLabel" text-anchor="middle">${slice.value}</text>`).join('')}
+            <circle id="hitbubble" cx="0" cy="0" r="${diameter}" fill-opacity="0"></circle>
+            <circle id="donutHole" cx="0" cy="0" r="${radius / 2}" fill="white"></circle>
+        </svg>
+        `: ''}
+    ${yFields && yFields.length ? /*html*/`
+        <chart-legend 
+            chartId="${chartDivElementId}yAxis"
+            [right]="10"
+            [top]="20"
+            [fields]="${yFields}"
+            [selectable]="true"
+            [canMultiselect]="false"
+            [colors]="['transparent']"
+            (select)="onFieldSelect($event)">
+        </chart-legend>
+    ` : ``}
+    ${yFields ? /*html*/`<y-fields-tooltip fieldMetadata="${yFields}"></y-fields-tooltip>` : ``}
+</div>
+<style>
+    .wholeChart {
+        width: 100%;
+        height: 100%;
+        margin-left: 25%;
+    }
 
-                .pieLabel {
-                    fill: #fff;
-                    font-weight: bold;
-                    font-size: 12px;
-                }
+    .pieLabel {
+        fill: #fff;
+        font-weight: bold;
+        font-size: 12px;
+    }
 
-                g text {
-                    font: 10px sans-serif;
-                }
+    g text {
+        font: 10px sans-serif;
+    }
 
-                text.title {
-                    font: bold 12px sans-serif;
-                    text-anchor: middle;
-                }
-            </style>
-         
-    `;
+    text.title {
+        font: bold 12px sans-serif;
+        text-anchor: middle;
+    }
+</style>`;
 }
 
 customElements.define('pie-chart', PieChart);
