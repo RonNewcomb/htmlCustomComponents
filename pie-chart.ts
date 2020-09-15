@@ -8,7 +8,7 @@ export interface AnalyzerField {
 
 export interface yValuesPerXValue {
     key: DropdownFieldCodename,
-    values: { [key: string]: number }[],
+    values: { [key: string]: number },
 }
 
 export interface PieSliceData {
@@ -20,7 +20,7 @@ export interface PieSliceData {
     label: string;
 
     // pie slice label
-    value: number; // value shown on slice label; the raw data
+    value: number | null; // value shown on slice label; the raw data
     labelAt: string; // location of slice label
     extraSmall: boolean; // shrink font if slice is thin
 }
