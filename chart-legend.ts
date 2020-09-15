@@ -18,6 +18,7 @@ export class ChartLegend extends HTMLElement {
     connectedCallback() {
         this.attachShadow({ mode: 'open' });
         this.addEventListener('drilldown', this.propertyChangedCallback.bind(this));
+        this.addEventListener('piechartinit', this.propertyChangedCallback.bind(this));
     }
 
     propertyChangedCallback(e: Event | CustomEvent) {
@@ -36,7 +37,7 @@ export class ChartLegend extends HTMLElement {
 function template({ chartId, fields, colors }: ChartLegend) {
     return /*html*/`
 <div id=${chartId} class=legend>
-    ${fields.map((field, i) => `<div><div class=swatch style='background-color:${colors[i]}'></div>${field.label}</div>`).join('')}
+    ${fields.map((field, i) => `<div><div class=swatch style='background-color:${colors[i % colors.length]}'></div>${field.label}</div>`).join('')}
 </div>    
 <style>
     .swatch {

@@ -1,54 +1,47 @@
-interface ListenerPrivate {
+interface ListeningElements {
+    (): Element[];
     id: number;
-    getElements: () => Array<Element>;
 }
 
-const eventTypesWithListeners = new Map<string, ListenerPrivate[]>();
+const eventTypesWithListeners = {} as { [customEventType: string]: ListeningElements[] };
 
 function copyEvent(e: Event): CustomEvent {
     const copy: any = {};
-    let current = e;
-    do {
+    for (let current = e; current; current = Object.getPrototypeOf(current)) {
         for (const each in current)
             if (each !== 'bubbles')
                 copy[each] = (e as any)[each];
-        current = Object.getPrototypeOf(current);
-    } while (current);
+    }
     const ev = new CustomEvent(e.type, copy);
-    current = e;
-    do {
+    for (let current = e; current; current = Object.getPrototypeOf(current)) {
         for (const each in current)
             if (each !== 'bubbles')
                 try {
                     (ev as any)[each] = (e as any)[each];
                 } catch (e) { }
-        current = Object.getPrototypeOf(current);
-    } while (current);
+    }
     return ev;
 }
 
-function resend(e: Event) {
-    const ev = copyEvent(e);
-    console.log('resending', ev);
-    eventTypesWithListeners.get(ev.type)?.map(listener => listener.getElements().forEach(element => element.dispatchEvent(ev)));
-}
+const resend = (e: Event) => eventTypesWithListeners[e.type]?.map(getElements => getElements().forEach(element => element.dispatchEvent(copyEvent(e))));
 
 export function listen(customEventType: string, elementOrSelector: string | Element): number {
-    if (!eventTypesWithListeners.has(customEventType)) {
-        eventTypesWithListeners.set(customEventType, []);
+    if (!eventTypesWithListeners[customEventType]) {
+        eventTypesWithListeners[customEventType] = [];
         document.addEventListener(customEventType, resend);
     }
-    const id = new Date().getTime();
     const getElements = () => typeof elementOrSelector === 'string' ? Array.from(document.querySelectorAll(elementOrSelector)) : [elementOrSelector];
-    eventTypesWithListeners.get(customEventType)!.push({ id, getElements });
-    return id;
+    getElements.id = new Date().getTime();
+    eventTypesWithListeners[customEventType]!.push(getElements);
+    return getElements.id;
 }
 
 export function unlisten(id: number): boolean {
-    for (const [eventType, listeners] of eventTypesWithListeners.entries()) {
+    for (const eventType in eventTypesWithListeners) {
+        const listeners = eventTypesWithListeners[eventType];
         for (const listener of listeners)
             if (listener.id === id) {
-                eventTypesWithListeners.set(eventType, listeners.filter(l => l.id !== id));
+                eventTypesWithListeners[eventType] = listeners.filter(l => l.id !== id);
                 return true;
             }
     }

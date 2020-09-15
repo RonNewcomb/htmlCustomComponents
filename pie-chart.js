@@ -28,9 +28,9 @@ export class PieChart extends HTMLElement {
         this.labelDistanceFromCenter = this.radius * 1.5;
     }
     connectedCallback() {
-        this.refresh();
+        this.render();
     }
-    refresh() {
+    render() {
         if (this.selectedYFields.length === 0)
             this.selectedYFields = this.yFields.slice(0, 3).filter(f => f).map(f => f.fieldName);
         this.selectedYField = this.yFields.find(af => this.selectedYFields.indexOf(af.fieldName) >= 0) || this.yFields[0];
@@ -125,7 +125,7 @@ export class PieChart extends HTMLElement {
     }
     onFieldSelect(fieldnames) {
         this.selectedYFields = fieldnames;
-        this.refresh();
+        this.render();
     }
     static template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, yFields }) {
         return `

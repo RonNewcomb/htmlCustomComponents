@@ -13,7 +13,7 @@
   </head>
 
   <body>
-    <div style="height: 30vw">
+    <div style="height: 30vw; display: flex">
       <chart-legend
         id="xAxis"
         chartId="${chartDivElementId}xAxis"
@@ -29,7 +29,9 @@
         (mouseleave)="onMouseLeaveLegend($event)"
       >
       </chart-legend>
+
       <pie-chart></pie-chart>
+
       <chart-legend
         id="yAxis"
         chartId="${chartDivElementId}yAxis"
@@ -46,7 +48,15 @@
 
     <script type="module" src="./chart-legend.js"></script>
     <script type="module" src="./pie-chart.js"></script>
-
-    <!-- <message-bus onDrilldown="chart-legend"></message-bus> -->
+    <script type="module">
+      const pie = document.querySelector("pie-chart");
+      pie.data = [];
+      for (var i = 0; i < 200; i++)
+        pie.data.push({
+          key: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+          values: { popularity: Math.floor(Math.random() * Math.random() * 100) },
+        });
+      pie.render();
+    </script>
   </body>
 </html>

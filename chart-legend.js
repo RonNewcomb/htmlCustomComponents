@@ -34,6 +34,7 @@ export class ChartLegend extends HTMLElement {
     connectedCallback() {
         this.attachShadow({ mode: 'open' });
         this.addEventListener('drilldown', this.propertyChangedCallback.bind(this));
+        this.addEventListener('piechartinit', this.propertyChangedCallback.bind(this));
     }
     propertyChangedCallback(e) {
         console.log('chart-legend got', e);
@@ -52,7 +53,7 @@ _colors = new WeakMap(), _fields = new WeakMap();
 function template({ chartId, fields, colors }) {
     return `
 <div id=${chartId} class=legend>
-    ${fields.map((field, i) => `<div><div class=swatch style='background-color:${colors[i]}'></div>${field.label}</div>`).join('')}
+    ${fields.map((field, i) => `<div><div class=swatch style='background-color:${colors[i % colors.length]}'></div>${field.label}</div>`).join('')}
 </div>    
 <style>
     .swatch {

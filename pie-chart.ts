@@ -66,14 +66,14 @@ export class PieChart extends HTMLElement {
 
     connectedCallback() {
         //this.attachShadow({ mode: 'open' }); // SVG doesn't work in ShadowDOM
-        this.refresh();
+        this.render();
     }
 
     // attributeChangedCallback() {
-    //     this.refresh();
+    //     this.render();
     // }
 
-    refresh() {
+    render() {
         if (this.selectedYFields.length === 0) this.selectedYFields = this.yFields.slice(0, 3).filter(f => f).map(f => f.fieldName);
         this.selectedYField = this.yFields.find(af => this.selectedYFields.indexOf(af.fieldName) >= 0) || this.yFields[0];
         this.yFieldName = <string>this.selectedYField.fieldName;
@@ -181,7 +181,7 @@ export class PieChart extends HTMLElement {
 
     onFieldSelect(fieldnames: DropdownFieldCodename[]) {
         this.selectedYFields = fieldnames;
-        this.refresh();
+        this.render();
     }
 
     static template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, yFields }: PieChart) {
