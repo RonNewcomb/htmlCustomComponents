@@ -1,6 +1,6 @@
 interface ListenerPrivate {
     id: number;
-    gettor: () => Array<Element>;
+    getElements: () => Array<Element>;
 }
 
 const eventTypesWithListeners = new Map<string, ListenerPrivate[]>();
@@ -29,7 +29,8 @@ function copyEvent(e: Event): CustomEvent {
 
 function resend(e: Event) {
     const ev = copyEvent(e);
-    eventTypesWithListeners.get(e.type)?.map(L => L.gettor().forEach(el => el.dispatchEvent(ev)));
+    console.log('resending', ev);
+    eventTypesWithListeners.get(ev.type)?.map(listener => listener.getElements().forEach(element => element.dispatchEvent(ev)));
 }
 
 export function listen(customEventType: string, elementOrSelector: string | Element): number {
@@ -38,8 +39,8 @@ export function listen(customEventType: string, elementOrSelector: string | Elem
         document.addEventListener(customEventType, resend);
     }
     const id = new Date().getTime();
-    const gettor = () => typeof elementOrSelector === 'string' ? Array.from(document.querySelectorAll(elementOrSelector)) : [elementOrSelector];
-    eventTypesWithListeners.get(customEventType)!.push({ id, gettor });
+    const getElements = () => typeof elementOrSelector === 'string' ? Array.from(document.querySelectorAll(elementOrSelector)) : [elementOrSelector];
+    eventTypesWithListeners.get(customEventType)!.push({ id, getElements });
     return id;
 }
 

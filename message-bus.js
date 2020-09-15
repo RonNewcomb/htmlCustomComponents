@@ -23,6 +23,7 @@ function copyEvent(e) {
 }
 function resend(e) {
     const ev = copyEvent(e);
+    console.log('resending', ev);
     eventTypesWithListeners.get(e.type)?.map(L => L.gettor().forEach(el => el.dispatchEvent(ev)));
 }
 export function listen(customEventType, elementOrSelector) {

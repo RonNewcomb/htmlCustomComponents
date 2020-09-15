@@ -1,5 +1,3 @@
-import { ChartLegend } from "./chart-legend.js";
-
 export type DropdownFieldCodename = string;
 export type AnalyzerChartIDType = string;
 export type Radians = number;
@@ -48,15 +46,15 @@ export class PieChart extends HTMLElement {
     };
 
     // events
-    drilldown = {
-        next: (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true })),
-    };
+    drilldown = (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
+    pieChartRender = () => this.dispatchEvent(new CustomEvent('piechartinit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
+
 
     // private
-    selectedYField: AnalyzerField;
-    yFieldName: string;
-    slices: PieSliceData[] = [];
-    hoveringOver: number = -1;
+    private selectedYField: AnalyzerField;
+    private yFieldName: string;
+    private slices: PieSliceData[] = [];
+    private hoveringOver: number = -1;
     readonly fullCircle: Radians = 2 * Math.PI;
     readonly radius = this.fullCircle / (2 * Math.PI);
     readonly diameter = this.radius * 2;
@@ -102,16 +100,12 @@ export class PieChart extends HTMLElement {
             runningSumOfAngles += percentInRadians;
             return s;
         });
-        this.innerHTML = template(this);
+        this.innerHTML = PieChart.template(this);
         const hitbubble = this.querySelector('#hitbubble');
         hitbubble?.addEventListener('mousemove', e => this.hoverSlice.bind(this)(e as MouseEvent));
         hitbubble?.addEventListener('mouseleave', this.deselectArea.bind(this));
         hitbubble?.addEventListener('click', e => this.clickSlice.bind(this)(e as MouseEvent));
-        // const legends: NodeListOf<ChartLegend> = this.querySelectorAll('chart-legend');
-        // legends.forEach(legend => {
-        //     legend.fields = this.slices;
-        //     legend.colors = this.colors;
-        // });
+        this.pieChartRender();
     }
 
     private polarCoordinatesToRectilinearCoordinates(angle: Radians, distanceFromCenter: number = this.labelDistanceFromCenter): string {
@@ -148,7 +142,7 @@ export class PieChart extends HTMLElement {
     clickSlice(event: MouseEvent) {
         let i = this.mouseToIndex(event);
         this.tooltipComponent.hideTip();
-        this.drilldown.next(this.data[i]);
+        this.drilldown(this.data[i]);
     }
 
     private selectArea(d: yValuesPerXValue, i: number) {
@@ -168,7 +162,7 @@ export class PieChart extends HTMLElement {
         let item = this.data.find(d => d.key === value);
         if (!item) return;
         this.tooltipComponent.hideTip();
-        this.drilldown.next(item);
+        this.drilldown(item);
     }
 
     onMouseEnterLegend(value: string) {
@@ -189,27 +183,10 @@ export class PieChart extends HTMLElement {
         this.selectedYFields = fieldnames;
         this.refresh();
     }
-}
 
-
-function template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, chartDivElementId, yFields }: PieChart) {
-    return /*html*/`
+    static template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, yFields }: PieChart) {
+        return /*html*/`
 <div id="svgPie" class="wholeChart">
-    ${slices && slices.length ? /*html*/`
-        <chart-legend
-            chartId="${chartDivElementId}xAxis"
-            [left]="10"
-            [top]="20"
-            [colors]="colors"
-            [fields]="slices"
-            [selectable]="false"
-            [canMultiselect]="false"
-            [hoveringOver]="hoveringOver"
-            (drilldown)="onDrilldown($event)"
-            (mouseenter)="onMouseEnterLegend($event)"
-            (mouseleave)="onMouseLeaveLegend($event)">
-        </chart-legend>
-    ` : ``}
     ${data && data.length && radius && diameter ? `
         <svg height="100%" viewBox="-${diameter}, -${diameter}, ${2 * diameter}, ${2 * diameter}" preserveAspectRatio="xMinYMid meet">
             <g stroke-width="${diameter}" fill="none" transform="rotate(-${rotateEntirePie * radiansToDegrees})">
@@ -221,7 +198,7 @@ function template({ data, diameter, fullCircle, slices, radius, colors, rotateEn
                 </circle>
             `).join('')}
                 ${hoveringOver > -1 && slices[hoveringOver]
-                ? /*html*/`
+                    ? /*html*/`
                     <circle id="fadeoutOverlay" cx="0" cy="0" r="${diameter}" fill-opacity="0.45" fill="white"></circle>
                     <circle id="highlightedSlice"
                             cx="0" cy="0" r="${radius}"
@@ -236,25 +213,12 @@ function template({ data, diameter, fullCircle, slices, radius, colors, rotateEn
             <circle id="donutHole" cx="0" cy="0" r="${radius / 2}" fill="white"></circle>
         </svg>
         `: ''}
-    ${yFields && yFields.length ? /*html*/`
-        <chart-legend 
-            chartId="${chartDivElementId}yAxis"
-            [right]="10"
-            [top]="20"
-            [fields]="${yFields}"
-            [selectable]="true"
-            [canMultiselect]="false"
-            [colors]="['transparent']"
-            (select)="onFieldSelect($event)">
-        </chart-legend>
-    ` : ``}
     ${yFields ? /*html*/`<y-fields-tooltip fieldMetadata="${yFields}"></y-fields-tooltip>` : ``}
 </div>
 <style>
     .wholeChart {
         width: 100%;
         height: 100%;
-        margin-left: 25%;
     }
 
     .pieLabel {
@@ -272,6 +236,8 @@ function template({ data, diameter, fullCircle, slices, radius, colors, rotateEn
         text-anchor: middle;
     }
 </style>`;
+
+    }
 }
 
 customElements.define('pie-chart', PieChart);

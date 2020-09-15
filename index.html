@@ -5,20 +5,48 @@
     <meta charset="UTF-8" />
     <meta name="Description" content="An extremely fast pie chart render" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script type="module">
+      import { listen } from "./message-bus.js";
+      listen("drilldown", "chart-legend#xAxis");
+      listen("piechartinit", "chart-legend#yAxis");
+    </script>
   </head>
 
   <body>
     <div style="height: 30vw">
+      <chart-legend
+        id="xAxis"
+        chartId="${chartDivElementId}xAxis"
+        [left]="10"
+        [top]="20"
+        [colors]="colors"
+        [fields]="slices"
+        [selectable]="false"
+        [canMultiselect]="false"
+        [hoveringOver]="hoveringOver"
+        (drilldown)="onDrilldown($event)"
+        (mouseenter)="onMouseEnterLegend($event)"
+        (mouseleave)="onMouseLeaveLegend($event)"
+      >
+      </chart-legend>
       <pie-chart></pie-chart>
+      <chart-legend
+        id="yAxis"
+        chartId="${chartDivElementId}yAxis"
+        [right]="10"
+        [top]="20"
+        [fields]="${yFields}"
+        [selectable]="true"
+        [canMultiselect]="false"
+        [colors]="['transparent']"
+        (select)="onFieldSelect($event)"
+      >
+      </chart-legend>
     </div>
 
     <script type="module" src="./chart-legend.js"></script>
     <script type="module" src="./pie-chart.js"></script>
 
-    <script type="module">
-      import { listen } from "./message-bus.js";
-
-      listen("drilldown", "chart-legend");
-    </script>
+    <!-- <message-bus onDrilldown="chart-legend"></message-bus> -->
   </body>
 </html>

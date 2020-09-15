@@ -58,8 +58,9 @@ function template({ chartId, fields, colors }) {
     .swatch {
         display: inline-block;
         height: 1em;
-        width: 2em;
-        margin-right: 1em;
+        width: 1em;
+        border-radius: 50%;
+        margin-right: 0.5em;
         color: lightgray;
     }
 </style>
