@@ -13,6 +13,7 @@
   </head>
 
   <body>
+    <div style="background-color: black"><button onclick="add10()">Add 10 more slices</button><br /></div>
     <div style="height: 30vw; display: flex">
       <chart-legend
         id="xAxis"
@@ -51,12 +52,22 @@
     <script type="module">
       const pie = document.querySelector("pie-chart");
       pie.data = [];
-      for (var i = 0; i < 200; i++)
+      for (var i = 0; i < 3; i++)
         pie.data.push({
           key: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
           values: { popularity: Math.floor(Math.random() * Math.random() * 100) },
         });
       pie.render();
+
+      window.add10 = function () {
+        const pie = document.querySelector("pie-chart");
+        for (var i = 0; i < 10; i++)
+          pie.data.push({
+            key: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+            values: { popularity: Math.floor(Math.random() * Math.random() * 100) },
+          });
+        pie.render();
+      };
     </script>
   </body>
 </html>
