@@ -49,7 +49,6 @@ export class PieChart extends HTMLElement {
     drilldown = (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
     pieChartRender = () => this.dispatchEvent(new CustomEvent('piechartinit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
 
-
     // private
     private selectedYField: AnalyzerField;
     private yFieldName: string;
@@ -218,7 +217,7 @@ export class PieChart extends HTMLElement {
 <style>
     .wholeChart {
         width: 100%;
-        height: 100%;
+        height: 100%; 
     }
 
     .pieLabel {

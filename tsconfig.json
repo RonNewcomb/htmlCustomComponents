@@ -2,7 +2,7 @@
     "compilerOptions": {
         "baseUrl": ".",
         "target": "ES2020",
-        "module": "ESNext",
+        "module": "esnext",
         "moduleResolution": "node",
         "sourceMap": false,
         "emitDecoratorMetadata": true,

@@ -17,8 +17,6 @@ export class ChartLegend extends HTMLElement {
 
     connectedCallback() {
         this.attachShadow({ mode: 'open' });
-        this.addEventListener('drilldown', this.propertyChangedCallback.bind(this));
-        this.addEventListener('piechartinit', this.propertyChangedCallback.bind(this));
     }
 
     propertyChangedCallback(e: Event | CustomEvent) {
@@ -27,6 +25,7 @@ export class ChartLegend extends HTMLElement {
         this.fields = e.detail.fields;
         this.colors = e.detail.colors;
         console.log('chart-legend set');
+        this.render()
     }
 
     render() {

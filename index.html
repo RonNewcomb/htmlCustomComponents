@@ -2,23 +2,16 @@
 <html lang="en">
   <head>
     <title>HTML5 Pie Chart - Ron Newcomb</title>
+
     <meta charset="UTF-8" />
     <meta name="Description" content="An extremely fast pie chart render" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="module">
-      import { listen } from "./message-bus.js";
-      listen("drilldown", "chart-legend#xAxis");
-      listen("piechartinit", "chart-legend#yAxis");
-    </script>
   </head>
 
   <body>
-    <div style="background-color: black"><button onclick="add10()">Add 10 more slices</button><br /></div>
     <div style="height: 30vw; display: flex">
-      <chart-legend
-        id="xAxis"
-        chartId="${chartDivElementId}xAxis"
-        [left]="10"
+      <chart-legend id="xAxis" chartId="${chartDivElementId}xAxis">
+        <!--        [left]="10"
         [top]="20"
         [colors]="colors"
         [fields]="slices"
@@ -28,7 +21,7 @@
         (drilldown)="onDrilldown($event)"
         (mouseenter)="onMouseEnterLegend($event)"
         (mouseleave)="onMouseLeaveLegend($event)"
-      >
+-->
       </chart-legend>
 
       <pie-chart></pie-chart>
@@ -46,28 +39,12 @@
       >
       </chart-legend>
     </div>
+    <div>
+      <button onclick="addN()" style="background-color: blue; color: white; border: 1px solid white; padding: 9px">Add 10 more slices</button>
+    </div>
 
     <script type="module" src="./chart-legend.js"></script>
     <script type="module" src="./pie-chart.js"></script>
-    <script type="module">
-      const pie = document.querySelector("pie-chart");
-      pie.data = [];
-      for (var i = 0; i < 3; i++)
-        pie.data.push({
-          key: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-          values: { popularity: Math.floor(Math.random() * Math.random() * 100) },
-        });
-      pie.render();
-
-      window.add10 = function () {
-        const pie = document.querySelector("pie-chart");
-        for (var i = 0; i < 10; i++)
-          pie.data.push({
-            key: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-            values: { popularity: Math.floor(Math.random() * Math.random() * 100) },
-          });
-        pie.render();
-      };
-    </script>
+    <script type="module" src="./index.js"></script>
   </body>
 </html>
