@@ -1,7 +1,14 @@
 import { PieChart } from "./pie-chart.js";
 import { ChartLegend } from "./chart-legend.js";
 
-const xAxis = document.querySelector("chart-legend#xAxis") as ChartLegend;
+['drilldown','piechartinit'].forEach(eventType =>
+Array.from(document.querySelectorAll('[on'+eventType+']'))
+.forEach(element=>{
+  const method= element.getAttribute( 'on'+eventType)||('on'+eventType);
+  if(element[method]&&typeof element[method]==='function') element[method]();
+  else console.log('missing method', method);
+})
+
 document.addEventListener("drilldown", e => xAxis.propertyChangedCallback(e));
 const yAxis = document.querySelector("chart-legend#yAxis") as ChartLegend;
 document.addEventListener("piechartinit", e => yAxis.propertyChangedCallback(e));
