@@ -31,6 +31,12 @@ export interface DrilldownArgs {
     colors: string[];
 }
 
+export interface TooltipInfo {
+    yPerX: yValuesPerXValue;
+    fields: AnalyzerField[];
+    event: MouseEvent;
+}
+
 export class PieChart extends HTMLElement {
     // required inputs
     yFields: AnalyzerField[] = [{ fieldName: 'popularity' }];
@@ -46,15 +52,14 @@ export class PieChart extends HTMLElement {
     selectedYFields: DropdownFieldCodename[] = [];
     chartDivElementId: AnalyzerChartIDType = new Date().getTime().toString();
 
-    // child component
-    tooltipComponent = {
-        hideTip: () => void 0,
-        showTip: (...rest: any[]) => console.log(rest),
-    };
-
     // events
-    drilldown = (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent<DrilldownArgs>('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
-    pieChartRender = () => this.dispatchEvent(new CustomEvent('piechartinit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
+    hideTip = () => this.dispatchEvent(new CustomEvent('hideTip', { bubbles: true }));
+    showTip = (yPerX: yValuesPerXValue, fields: AnalyzerField[], event: MouseEvent) =>
+        this.dispatchEvent(new CustomEvent<TooltipInfo>('showtip', { detail: { yPerX, fields, event }, bubbles: true }));
+    drilldown = (yPerX: yValuesPerXValue) =>
+        this.dispatchEvent(new CustomEvent<DrilldownArgs>('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
+    pieChartRender = () =>
+        this.dispatchEvent(new CustomEvent('piechartinit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
 
     // private
     private selectedYField: AnalyzerField;
@@ -144,23 +149,24 @@ export class PieChart extends HTMLElement {
 
     hoverSlice(event: MouseEvent) {
         let i = this.mouseToIndex(event);
-        return this.selectArea(this.data[i], i);
+        return this.selectArea(this.data[i], i, event);
     }
 
     clickSlice(event: MouseEvent) {
         let i = this.mouseToIndex(event);
-        this.tooltipComponent.hideTip();
+        this.hideTip();
         this.drilldown(this.data[i]);
     }
 
-    private selectArea(d: yValuesPerXValue, i: number) {
+    private selectArea(d: yValuesPerXValue, i: number, event: MouseEvent) {
         this.hoveringOver = i;
-        this.tooltipComponent.showTip(d.key, d.values, this.yFields);
+        console.log('showingtip')
+        this.showTip(d, this.yFields, event);
     }
 
     deselectArea() {
         this.hoveringOver = -1;
-        this.tooltipComponent.hideTip();
+        this.hideTip();
     }
 
     // Legend for x-axis /////////////
@@ -169,16 +175,16 @@ export class PieChart extends HTMLElement {
         if (!value) return;
         let item = this.data.find(d => d.key === value);
         if (!item) return;
-        this.tooltipComponent.hideTip();
+        this.hideTip();
         this.drilldown(item);
     }
 
-    onMouseEnterLegend(value: string) {
+    onMouseEnterLegend(value: string, event: MouseEvent) {
         if (!value) return;
         let item = this.data.find(d => d.key === value);
         if (!item) return;
         let i = this.slices.findIndex(x => x.fieldName === value);
-        this.selectArea(item, i);
+        this.selectArea(item, i, event);
     }
 
     onMouseLeaveLegend(value: string) {
@@ -221,7 +227,6 @@ export class PieChart extends HTMLElement {
             <circle id="donutHole" cx="0" cy="0" r="${radius / 2}" fill="white"></circle>
         </svg>
         `: ''}
-    ${yFields ? /*html*/`<y-fields-tooltip fieldMetadata="${yFields}"></y-fields-tooltip>` : ``}
 </div>
 <style>
     :host, pie-chart {

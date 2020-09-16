@@ -11,7 +11,6 @@ export class ChartLegend extends HTMLElement {
     get selectable(): boolean { return this.getAttribute('selectable') === 'true' }
     get canMultiselect(): boolean { return this.getAttribute('canMultiselect') === 'true' }
     get hoveringOver(): number { return parseInt(this.getAttribute('hoveringOver') || '0') }
-    drilldown = "onDrilldown($event)";
     mouseenter = "onMouseEnterLegend($event)";
     mouseleave = "onMouseLeaveLegend($event)";
 
