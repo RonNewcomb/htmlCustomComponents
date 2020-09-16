@@ -10,7 +10,7 @@
 
   <body>
     <div style="height: 30vw; display: flex">
-      <chart-legend id="xAxis" chartId="${chartDivElementId}xAxis">
+      <chart-legend id="xAxis" chartId="${chartDivElementId}xAxis" onpiechartinit="propertyChangedCallback">
         <!--        [left]="10"
         [top]="20"
         [colors]="colors"
@@ -29,6 +29,7 @@
       <chart-legend
         id="yAxis"
         chartId="${chartDivElementId}yAxis"
+onDrilldown="propertyChangedCallback"
         [right]="10"
         [top]="20"
         [fields]="${yFields}"
