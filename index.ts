@@ -1,8 +1,11 @@
 import { PieChart } from "./pie-chart.js";
 import { ChartLegend } from "./chart-legend.js";
 
-['drilldown','piechartinit'].forEach(eventType => document.addEventListener(eventType,go);
+['drilldown','piechartinit'].forEach(register);
 
+function register (customEventType:string){
+ document.addEventListener(customEventType, go);
+}
 function go(e:CustomEvent){
 const eventType='on'+e.type;
 Array.from(document.querySelectorAll('['+eventType+']'))
