@@ -6,13 +6,12 @@ export const register = (customEventType: string) => document.addEventListener(c
 
 function go(e: Event | CustomEvent) {
     const eventType = 'on' + e.type;
-    Array.from(document.querySelectorAll('[' + eventType + ']'))
-        .forEach(element => {
-            const method = element.getAttribute(eventType) || eventType;
-            const handler = (element as any)[method].bind(element);
-            if (handler && typeof handler === 'function') handler(e);
-            else console.log('missing method', method);
-        })
+    document.querySelectorAll('[' + eventType + ']').forEach(element => {
+        const methodName = element.getAttribute(eventType) || eventType;
+        const method = (element as any)[methodName];
+        if (method && typeof method === 'function') method.bind(element)(e);
+        else console.log('missing method', methodName);
+    })
 }
 
 ['drilldown', 'piechartinit'].forEach(register);

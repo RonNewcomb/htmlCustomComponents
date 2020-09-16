@@ -1,4 +1,4 @@
-import { PieSliceData } from "pie-chart";
+import { PieSliceData, DrilldownArgs } from "pie-chart";
 
 export class ChartLegend extends HTMLElement {
     get chartId(): string { return this.getAttribute('chartId') || ''; }
@@ -19,12 +19,10 @@ export class ChartLegend extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
 
-    propertyChangedCallback(e: Event | CustomEvent) {
+    propertyChangedCallback(e: CustomEvent<DrilldownArgs>) {
         console.log('chart-legend got', e);
-        if (!(e instanceof CustomEvent)) return;
-        this.fields = e.detail.fields;
-        this.colors = e.detail.colors;
-        console.log('chart-legend set');
+        this.#fields = e.detail.fields;
+        this.#colors = e.detail.colors;
         this.render()
     }
 

@@ -25,6 +25,12 @@ export interface PieSliceData {
     extraSmall: boolean; // shrink font if slice is thin
 }
 
+export interface DrilldownArgs {
+    yPerX: yValuesPerXValue;
+    fields: PieSliceData[];
+    colors: string[];
+}
+
 export class PieChart extends HTMLElement {
     // required inputs
     yFields: AnalyzerField[] = [{ fieldName: 'popularity' }];
@@ -47,7 +53,7 @@ export class PieChart extends HTMLElement {
     };
 
     // events
-    drilldown = (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
+    drilldown = (yPerX: yValuesPerXValue) => this.dispatchEvent(new CustomEvent<DrilldownArgs>('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
     pieChartRender = () => this.dispatchEvent(new CustomEvent('piechartinit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
 
     // private
