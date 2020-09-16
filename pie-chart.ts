@@ -215,6 +215,7 @@ export class PieChart extends HTMLElement {
     ${yFields ? /*html*/`<y-fields-tooltip fieldMetadata="${yFields}"></y-fields-tooltip>` : ``}
 </div>
 <style>
+:host{display:block;}
     .wholeChart {
         width: 100%;
         height: 100%; 
