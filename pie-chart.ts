@@ -35,6 +35,7 @@ export class PieChart extends HTMLElement {
     ];
 
     // optional inputs
+    size = '50px';
     colors = ["Blue ", "LimeGreen", "Red", "OrangeRed", "Indigo", "Yellow", "DarkMagenta", "Orange", "Crimson", "DeepSkyBlue", "DeepPink", "LightSeaGreen", '#4751e9', "#dc3912", '#00b862', '#ff5722', '#2196f3', '#eeeb0c', "#0e8816", "#910291", '#ff9800', '#ff4514'];
     selectedYFields: DropdownFieldCodename[] = [];
     chartDivElementId: AnalyzerChartIDType = new Date().getTime().toString();
@@ -65,12 +66,14 @@ export class PieChart extends HTMLElement {
 
     connectedCallback() {
         //this.attachShadow({ mode: 'open' }); // SVG doesn't work in ShadowDOM
+        this.size = this.getAttribute('size') || '50px';
         this.render();
     }
 
-    // attributeChangedCallback() {
-    //     this.render();
-    // }
+    attributeChangedCallback() {
+        this.size = this.getAttribute('size') || '50px';
+        this.render();
+    }
 
     render() {
         if (this.selectedYFields.length === 0) this.selectedYFields = this.yFields.slice(0, 3).filter(f => f).map(f => f.fieldName);
@@ -183,7 +186,7 @@ export class PieChart extends HTMLElement {
         this.render();
     }
 
-    static template({ data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, yFields }: PieChart) {
+    static template({ size, data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, yFields }: PieChart) {
         return /*html*/`
 <div id="svgPie" class="wholeChart">
     ${data && data.length && radius && diameter ? `
@@ -215,10 +218,13 @@ export class PieChart extends HTMLElement {
     ${yFields ? /*html*/`<y-fields-tooltip fieldMetadata="${yFields}"></y-fields-tooltip>` : ``}
 </div>
 <style>
-:host{display:block;}
-    .wholeChart {
-        width: 100%;
-        height: 100%; 
+    :host, pie-chart {
+        display: block;
+    }
+
+    .wholeChart { 
+         width: ${size}; 
+        height: ${size};
     }
 
     .pieLabel {

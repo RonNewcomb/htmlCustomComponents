@@ -39,7 +39,10 @@ function template({ chartId, fields, colors }: ChartLegend) {
     ${fields.map((field, i) => `<div><div class=swatch style='background-color:${colors[i % colors.length]}'></div>${field.label}</div>`).join('')}
 </div>    
 <style>
-:host{display:block;}
+    :host {
+        display: block;
+        overflow: auto;
+    }
     .swatch {
         display: inline-block;
         height: 1em;

@@ -1,20 +1,22 @@
+import "./pie-chart.js";
+import "./chart-legend.js";
 import { PieChart } from "./pie-chart.js";
-import { ChartLegend } from "./chart-legend.js";
 
-['drilldown','piechartinit'].forEach(register);
+export const register = (customEventType: string) => document.addEventListener(customEventType, go);
 
-function register (customEventType:string){
- document.addEventListener(customEventType, go);
+function go(e: Event | CustomEvent) {
+    const eventType = 'on' + e.type;
+    Array.from(document.querySelectorAll('[' + eventType + ']'))
+        .forEach(element => {
+            const method = element.getAttribute(eventType) || eventType;
+            const handler = (element as any)[method].bind(element);
+            if (handler && typeof handler === 'function') handler(e);
+            else console.log('missing method', method);
+        })
 }
-function go(e:CustomEvent){
-const eventType='on'+e.type;
-Array.from(document.querySelectorAll('['+eventType+']'))
-.forEach(element=>{
-  const method= element.getAttribute(eventType)||eventType;
-  if(element[method]&&typeof element[method]==='function') element[method](e);
-  else console.log('missing method', method);
-})
-}
+
+['drilldown', 'piechartinit'].forEach(register);
+
 
 (window as any).addN = (n: number = 10) => {
     const pie = document.querySelector("pie-chart") as PieChart;

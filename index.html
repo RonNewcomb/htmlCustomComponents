@@ -9,7 +9,7 @@
   </head>
 
   <body>
-    <div style="height: 30vw; display: flex">
+    <div style="max-height: 30vw; display: flex">
       <chart-legend id="xAxis" chartId="${chartDivElementId}xAxis" onpiechartinit="propertyChangedCallback">
         <!--        [left]="10"
         [top]="20"
@@ -24,12 +24,12 @@
 -->
       </chart-legend>
 
-      <pie-chart></pie-chart>
+      <pie-chart size="30vw"></pie-chart>
 
       <chart-legend
         id="yAxis"
         chartId="${chartDivElementId}yAxis"
-onDrilldown="propertyChangedCallback"
+        onDrilldown="propertyChangedCallback"
         [right]="10"
         [top]="20"
         [fields]="${yFields}"
@@ -44,8 +44,6 @@ onDrilldown="propertyChangedCallback"
       <button onclick="addN()" style="background-color: blue; color: white; border: 1px solid white; padding: 9px">Add 10 more slices</button>
     </div>
 
-    <script type="module" src="./chart-legend.js"></script>
-    <script type="module" src="./pie-chart.js"></script>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
