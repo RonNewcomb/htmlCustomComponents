@@ -17,9 +17,7 @@ export const register = (customEventType: string) => {
 
 function go(e: Event | CustomEvent) {
     const eventType = 'on' + e.type;
-    const elements = document.querySelectorAll('[' + eventType + ']');
-    console.log(eventType, elements.length, "elements");
-    elements.forEach(element => {
+    document.querySelectorAll('[' + eventType + ']').forEach(element => {
         const methodName = element.getAttribute(eventType) || eventType;
         const method = (element as any)[methodName];
         if (method && typeof method === 'function') method.bind(element)(e);

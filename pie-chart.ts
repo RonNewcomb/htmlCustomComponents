@@ -160,7 +160,6 @@ export class PieChart extends HTMLElement {
 
     private selectArea(d: yValuesPerXValue, i: number, event: MouseEvent) {
         this.hoveringOver = i;
-        console.log('showingtip')
         this.showTip(d, this.yFields, event);
     }
 

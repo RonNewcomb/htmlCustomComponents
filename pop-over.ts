@@ -6,7 +6,6 @@ class Popover extends HTMLElement {
     }
 
     onShowTip(e: CustomEvent<TooltipInfo>) {
-        console.log('onShowTip')
         const host = (this.shadowRoot!.host! as HTMLElement);
         host.style.display = 'block';
         host.style.top = e.detail.event.screenY + 'px';

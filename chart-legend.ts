@@ -19,7 +19,6 @@ export class ChartLegend extends HTMLElement {
     }
 
     propertyChangedCallback(e: CustomEvent<DrilldownArgs>) {
-        console.log('chart-legend got', e);
         this.#fields = e.detail.fields;
         this.#colors = e.detail.colors;
         this.render()
