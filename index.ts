@@ -3,30 +3,11 @@ import "./chart-legend.js";
 import "./pop-over.js";
 import { PieChart } from "./pie-chart.js";
 
-const registeredCustomEventTypes: { [key: string]: boolean } = {};
-
-export const say = <T>(element: Element, customEventType: string, detail?: T) => {
-    if (!registeredCustomEventTypes[customEventType]) register(customEventType);
-    element.dispatchEvent(new CustomEvent<T>(customEventType, { detail, bubbles: true }));
-}
-
-export const register = (customEventType: string) => {
-    document.addEventListener(customEventType, go);
-    registeredCustomEventTypes[customEventType] = true;
-}
-
-function go(e: Event | CustomEvent) {
-    const eventType = 'on' + e.type;
-    document.querySelectorAll('[' + eventType + ']').forEach(element => {
-        const methodName = element.getAttribute(eventType) || eventType;
-        const method = (element as any)[methodName];
-        if (method && typeof method === 'function') method.bind(element)(e);
-        else console.log('missing method', methodName);
-    })
-}
-
-['drilldown', 'piechartinit', 'showtip', 'hideTip'].forEach(register);
-
+['drilldown', 'pieChartInit', 'showTip', 'hideTip']
+    .forEach(et =>
+        document.addEventListener(et, ev =>
+            document.querySelectorAll(`[${ev.type}]`).forEach((el: any) =>
+                el?.[el.getAttribute(ev.type) || ev.type]?.bind(el)(ev))));
 
 (window as any).addN = (n: number = 10) => {
     const pie = document.querySelector("pie-chart") as PieChart;

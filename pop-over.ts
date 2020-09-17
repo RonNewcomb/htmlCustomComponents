@@ -5,7 +5,7 @@ class Popover extends HTMLElement {
         this.attachShadow({ mode: 'open' }).innerHTML = template();
     }
 
-    onShowTip(e: CustomEvent<TooltipInfo>) {
+    showTip(e: CustomEvent<TooltipInfo>) {
         const host = (this.shadowRoot!.host! as HTMLElement);
         host.style.display = 'block';
         host.style.top = e.detail.event.screenY + 'px';
@@ -14,7 +14,7 @@ class Popover extends HTMLElement {
         this.shadowRoot!.firstElementChild!.lastElementChild!.innerHTML = e.detail.fields.map(field => `<div>${field.fieldName}: ${e.detail.yPerX.values[field.fieldName]}</div>`).join('');
     }
 
-    onHideTip(e: CustomEvent<void>) {
+    hideTip(e: CustomEvent<void>) {
         const host = (this.shadowRoot!.host! as HTMLElement);
         host.style.display = 'none';
     }

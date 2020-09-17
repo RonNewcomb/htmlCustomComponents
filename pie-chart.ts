@@ -55,11 +55,11 @@ export class PieChart extends HTMLElement {
     // events
     hideTip = () => this.dispatchEvent(new CustomEvent('hideTip', { bubbles: true }));
     showTip = (yPerX: yValuesPerXValue, fields: AnalyzerField[], event: MouseEvent) =>
-        this.dispatchEvent(new CustomEvent<TooltipInfo>('showtip', { detail: { yPerX, fields, event }, bubbles: true }));
+        this.dispatchEvent(new CustomEvent<TooltipInfo>('showTip', { detail: { yPerX, fields, event }, bubbles: true }));
     drilldown = (yPerX: yValuesPerXValue) =>
         this.dispatchEvent(new CustomEvent<DrilldownArgs>('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
     pieChartRender = () =>
-        this.dispatchEvent(new CustomEvent('piechartinit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
+        this.dispatchEvent(new CustomEvent('pieChartInit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
 
     // private
     private selectedYField: AnalyzerField;
