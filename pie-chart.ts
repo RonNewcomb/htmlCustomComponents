@@ -37,7 +37,23 @@ export interface TooltipInfo {
     event: MouseEvent;
 }
 
+// events
+const hideTip = (el: PieChart) =>
+    el.dispatchEvent(new CustomEvent('hideTip'));
+
+const showTip = (el: PieChart, yPerX: yValuesPerXValue, event: MouseEvent) =>
+    el.dispatchEvent(new CustomEvent<TooltipInfo>('showTip', { detail: { yPerX, event, fields: el.yFields } }));
+
+const drilldown = (el: PieChart, yPerX: yValuesPerXValue) =>
+    el.dispatchEvent(new CustomEvent<DrilldownArgs>('drilldown', { detail: { yPerX, colors: el.colors, fields: el.slices } }));
+
+const pieChartRender = (el: PieChart) =>
+    el.dispatchEvent(new CustomEvent('pieChartInit', { detail: { fields: el.yFields, colors: ['transparent'] } }));
+
+
 export class PieChart extends HTMLElement {
+    static observedAttributes = ['size'];
+
     // required inputs
     yFields: AnalyzerField[] = [{ fieldName: 'popularity' }];
     data: yValuesPerXValue[] = [
@@ -48,24 +64,15 @@ export class PieChart extends HTMLElement {
 
     // optional inputs
     size = '50px';
-    colors = ["Blue ", "LimeGreen", "Red", "OrangeRed", "Indigo", "Yellow", "DarkMagenta", "Orange", "Crimson", "DeepSkyBlue", "DeepPink", "LightSeaGreen", '#4751e9', "#dc3912", '#00b862', '#ff5722', '#2196f3', '#eeeb0c', "#0e8816", "#910291", '#ff9800', '#ff4514'];
+    colors = ["DeepPink", "LightSeaGreen", '#4751e9', "#dc3912", '#00b862', '#ff5722', '#2196f3', '#eeeb0c', "#0e8816", "#910291", '#ff9800', '#ff4514', "Blue", "LimeGreen", "Red", "OrangeRed", "Indigo", "Yellow", "DarkMagenta", "Orange", "Crimson", "DeepSkyBlue",];
     selectedYFields: DropdownFieldCodename[] = [];
     chartDivElementId: AnalyzerChartIDType = new Date().getTime().toString();
 
-    // events
-    hideTip = () => this.dispatchEvent(new CustomEvent('hideTip', { bubbles: true }));
-    showTip = (yPerX: yValuesPerXValue, fields: AnalyzerField[], event: MouseEvent) =>
-        this.dispatchEvent(new CustomEvent<TooltipInfo>('showTip', { detail: { yPerX, fields, event }, bubbles: true }));
-    drilldown = (yPerX: yValuesPerXValue) =>
-        this.dispatchEvent(new CustomEvent<DrilldownArgs>('drilldown', { detail: { yPerX, fields: this.slices, colors: this.colors }, bubbles: true }));
-    pieChartRender = () =>
-        this.dispatchEvent(new CustomEvent('pieChartInit', { detail: { fields: this.yFields, colors: ['transparent'] }, bubbles: true }));
-
     // private
-    private selectedYField: AnalyzerField;
-    private yFieldName: string;
-    private slices: PieSliceData[] = [];
-    private hoveringOver: number = -1;
+    selectedYField: AnalyzerField;
+    yFieldName: string;
+    slices: PieSliceData[] = [];
+    hoveringOver: number = -1;
     readonly fullCircle: Radians = 2 * Math.PI;
     readonly radius = this.fullCircle / (2 * Math.PI);
     readonly diameter = this.radius * 2;
@@ -76,7 +83,6 @@ export class PieChart extends HTMLElement {
     readonly labelDistanceFromCenter = this.radius * 1.5;
 
     connectedCallback() {
-        //this.attachShadow({ mode: 'open' }); // SVG doesn't work in ShadowDOM
         this.size = this.getAttribute('size') || '50px';
         this.render();
     }
@@ -115,10 +121,10 @@ export class PieChart extends HTMLElement {
         });
         this.innerHTML = PieChart.template(this);
         const hitbubble = this.querySelector('#hitbubble');
-        hitbubble?.addEventListener('mousemove', e => this.hoverSlice.bind(this)(e as MouseEvent));
-        hitbubble?.addEventListener('mouseleave', this.deselectArea.bind(this));
-        hitbubble?.addEventListener('click', e => this.clickSlice.bind(this)(e as MouseEvent));
-        this.pieChartRender();
+        hitbubble?.addEventListener('mousemove', e => this.onMouseMove.bind(this)(e as MouseEvent));
+        hitbubble?.addEventListener('mouseleave', this.onMouseLeave.bind(this));
+        hitbubble?.addEventListener('click', e => this.onClickSlice.bind(this)(e as MouseEvent));
+        pieChartRender(this);
     }
 
     private polarCoordinatesToRectilinearCoordinates(angle: Radians, distanceFromCenter: number = this.labelDistanceFromCenter): string {
@@ -147,25 +153,25 @@ export class PieChart extends HTMLElement {
         return i < 0 ? this.slices.length - 1 : i - 1;
     }
 
-    hoverSlice(event: MouseEvent) {
+    onMouseMove(event: MouseEvent) {
         let i = this.mouseToIndex(event);
         return this.selectArea(this.data[i], i, event);
     }
 
-    clickSlice(event: MouseEvent) {
+    onClickSlice(event: MouseEvent) {
         let i = this.mouseToIndex(event);
-        this.hideTip();
-        this.drilldown(this.data[i]);
+        hideTip(this);
+        drilldown(this, this.data[i]);
     }
 
     private selectArea(d: yValuesPerXValue, i: number, event: MouseEvent) {
         this.hoveringOver = i;
-        this.showTip(d, this.yFields, event);
+        showTip(this, d, event);
     }
 
-    deselectArea() {
+    onMouseLeave() {
         this.hoveringOver = -1;
-        this.hideTip();
+        hideTip(this);
     }
 
     // Legend for x-axis /////////////
@@ -174,8 +180,8 @@ export class PieChart extends HTMLElement {
         if (!value) return;
         let item = this.data.find(d => d.key === value);
         if (!item) return;
-        this.hideTip();
-        this.drilldown(item);
+        hideTip(this);
+        drilldown(this, item);
     }
 
     onMouseEnterLegend(value: string, event: MouseEvent) {
@@ -187,7 +193,7 @@ export class PieChart extends HTMLElement {
     }
 
     onMouseLeaveLegend(value: string) {
-        this.deselectArea();
+        this.onMouseLeave();
     }
 
     // Legend for y-axis /////////////

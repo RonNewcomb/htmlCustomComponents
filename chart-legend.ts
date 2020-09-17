@@ -1,4 +1,4 @@
-import { PieSliceData, DrilldownArgs } from "pie-chart";
+import type { PieSliceData, DrilldownArgs } from "pie-chart";
 
 export class ChartLegend extends HTMLElement {
     get chartId(): string { return this.getAttribute('chartId') || ''; }

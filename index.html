@@ -12,30 +12,16 @@
     <div style="max-height: 30vw; display: flex">
       <pie-chart size="30vw"></pie-chart>
 
-      <chart-legend
-        id="yAxis"
-        chartId="${chartDivElementId}yAxis"
-        drilldown="propertyChangedCallback"
-        style="margin: 0 16px"
-        [right]="10"
-        [top]="20"
-        [fields]="${yFields}"
-        [selectable]="true"
-        [canMultiselect]="false"
-        [colors]="['transparent']"
-        (select)="onFieldSelect($event)"
-      >
+      <chart-legend id="yAxis" chartId="${chartDivElementId}yAxis" drilldown="propertyChangedCallback" style="margin: 0 16px" (select)="onFieldSelect($event)">
       </chart-legend>
 
-      <chart-legend id="xAxis" chartId="${chartDivElementId}xAxis" onpiechartinit="propertyChangedCallback">
-        <!--  
-        [selectable]="false"
-        [canMultiselect]="false"
+      <!-- <chart-legend id="xAxis" chartId="${chartDivElementId}xAxis" piechartinit="propertyChangedCallback"> -->
+      <!--  
         [hoveringOver]="hoveringOver"
         (drilldown)="onDrilldown($event)"
         (mouseenter)="onMouseEnterLegend($event)"
         (mouseleave)="onMouseLeaveLegend($event)"-->
-      </chart-legend>
+      <!-- </chart-legend> -->
     </div>
     <div>
       <button onclick="addN()" style="background-color: blue; color: white; border: 1px solid white; padding: 9px">Add 10 more slices</button>

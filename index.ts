@@ -7,11 +7,12 @@ import { PieChart } from "./pie-chart.js";
     .forEach(et =>
         document.addEventListener(et, ev =>
             document.querySelectorAll(`[${ev.type}]`).forEach((el: any) =>
-                el?.[el.getAttribute(ev.type) || ev.type]?.bind(el)(ev))));
+                el?.[el.getAttribute(ev.type) || ev.type]?.bind(el)(ev)),
+            true));
 
 (window as any).addN = (n: number = 10) => {
     const pie = document.querySelector("pie-chart") as PieChart;
-    for (var i = 0; i < n; i++)
+    for (let i = 0; i < n; i++)
         pie.data.push({
             key: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             values: { popularity: Math.floor(Math.random() * Math.random() * 100) + 1 },

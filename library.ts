@@ -2,11 +2,11 @@ const registeredCustomEventTypes: { [key: string]: boolean } = {};
 
 export function say<T>(element: Element, customEventType: string, detail?: T) {
     if (!registeredCustomEventTypes[customEventType]) register(customEventType);
-    element.dispatchEvent(new CustomEvent<T>(customEventType, { detail, bubbles: true }));
+    element.dispatchEvent(new CustomEvent<T>(customEventType, { detail }));
 }
 
 export function register(customEventType: string) {
-    document.addEventListener(customEventType, go);
+    document.addEventListener(customEventType, go, true);
     registeredCustomEventTypes[customEventType] = true;
 }
 
