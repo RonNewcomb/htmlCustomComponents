@@ -50,6 +50,35 @@ const drilldown = (el: PieChart, yPerX: yValuesPerXValue) =>
 const pieChartRender = (el: PieChart) =>
     el.dispatchEvent(new CustomEvent('pieChartInit', { detail: { fields: el.yFields, colors: ['transparent'] } }));
 
+// trigonometry 
+const fullCircle: Radians = 2 * Math.PI;
+const radius = fullCircle / (2 * Math.PI);
+const diameter = radius * 2;
+const radiansToDegrees = 180 / Math.PI;
+const degreesToRadians = Math.PI / 180;
+const fontScalingFactor = 0.015;         // TODO: I eyeballed this value.
+const rotateEntirePie: Radians = Math.PI / 2;
+const labelDistanceFromCenter = radius * 1.5;
+
+function polarCoordinatesToRectilinearCoordinates(angle: Radians, distanceFromCenter: number = labelDistanceFromCenter): string {
+    return (distanceFromCenter * Math.cos(angle)) + "," + (distanceFromCenter * Math.sin(angle));
+}
+
+function rectilinearCoordinatesToPolarCoordinates(x: number, y: number): Radians {
+    let angle = Math.atan2(y, x) + rotateEntirePie;
+    if (angle < 0) angle += fullCircle;
+    return angle;   // distance isn't needed so just calc the angle and return
+}
+
+function getMouseCoordinatesRelativeToCircleCenter(event: MouseEvent, svgElement: SVGSVGElement): { x: number, y: number } {
+    let bbox = svgElement.getBoundingClientRect();
+    let x = event.clientX - bbox.left - svgElement.clientHeight / 2; // clientHeight because aspect ratio keeps it square and IE11 is IE11
+    let y = event.clientY - bbox.top - svgElement.clientHeight / 2;
+    return { x, y }; // returns 0,0 when mouse cursor is at center of circle, etc.
+}
+
+
+// class /////////////////////////////////////
 
 export class PieChart extends HTMLElement {
     static observedAttributes = ['size'];
@@ -73,14 +102,6 @@ export class PieChart extends HTMLElement {
     yFieldName: string;
     slices: PieSliceData[] = [];
     hoveringOver: number = -1;
-    readonly fullCircle: Radians = 2 * Math.PI;
-    readonly radius = this.fullCircle / (2 * Math.PI);
-    readonly diameter = this.radius * 2;
-    readonly radiansToDegrees = 180 / Math.PI;
-    readonly degreesToRadians = Math.PI / 180;
-    readonly fontScalingFactor = 0.015;         // TODO: I eyeballed this value.
-    readonly rotateEntirePie: Radians = Math.PI / 2;
-    readonly labelDistanceFromCenter = this.radius * 1.5;
 
     connectedCallback() {
         this.size = this.getAttribute('size') || '50px';
@@ -104,8 +125,8 @@ export class PieChart extends HTMLElement {
         this.slices = this.data.map((datum: yValuesPerXValue) => {
             let v = datum.values[this.yFieldName] || 0;
             let percent = v / sum;
-            let percentInRadians: Radians = percent * this.fullCircle;
-            let angleToMiddleOfSlice: Radians = runningSumOfAngles - this.rotateEntirePie + (percentInRadians / 2);
+            let percentInRadians: Radians = percent * fullCircle;
+            let angleToMiddleOfSlice: Radians = runningSumOfAngles - rotateEntirePie + (percentInRadians / 2);
             let percentSizeNeededForLabelLength = v.toString().length / 100;
             let s: PieSliceData = {
                 percentInAngles: percentInRadians,
@@ -114,12 +135,12 @@ export class PieChart extends HTMLElement {
                 fieldName: datum.key,   // legend
                 value: (percent > percentSizeNeededForLabelLength) ? v : null, // omit slice's label unless > 1%
                 extraSmall: (percent < 0.04 + percentSizeNeededForLabelLength),
-                labelAt: this.polarCoordinatesToRectilinearCoordinates(angleToMiddleOfSlice),
+                labelAt: polarCoordinatesToRectilinearCoordinates(angleToMiddleOfSlice),
             };
             runningSumOfAngles += percentInRadians;
             return s;
         });
-        this.innerHTML = PieChart.template(this);
+        this.innerHTML = template(this);
         const hitbubble = this.querySelector('#hitbubble');
         hitbubble?.addEventListener('mousemove', e => this.onMouseMove.bind(this)(e as MouseEvent));
         hitbubble?.addEventListener('mouseleave', this.onMouseLeave.bind(this));
@@ -127,28 +148,11 @@ export class PieChart extends HTMLElement {
         pieChartRender(this);
     }
 
-    private polarCoordinatesToRectilinearCoordinates(angle: Radians, distanceFromCenter: number = this.labelDistanceFromCenter): string {
-        return (distanceFromCenter * Math.cos(angle)) + "," + (distanceFromCenter * Math.sin(angle));
-    }
-
-    private rectilinearCoordinatesToPolarCoordinates(x: number, y: number): Radians {
-        let angle = Math.atan2(y, x) + this.rotateEntirePie;
-        if (angle < 0) angle += this.fullCircle;
-        return angle;   // distance isn't needed so just calc the angle and return
-    }
-
-    private getMouseCoordinatesRelativeToCircleCenter(event: MouseEvent): { x: number, y: number } {
-        let svgElement = <SVGSVGElement>(<HTMLElement>this).getElementsByTagName('svg')[0];
-        let bbox = svgElement.getBoundingClientRect();
-        let x = event.clientX - bbox.left - svgElement.clientHeight / 2; // clientHeight because aspect ratio keeps it square and IE11 is IE11
-        let y = event.clientY - bbox.top - svgElement.clientHeight / 2;
-        return { x: x, y: y }; // returns 0,0 when mouse cursor is at center of circle, etc.
-    }
-
     // returned index is for this.data and for this.slices
     private mouseToIndex(event: MouseEvent): number {
-        let mouseAt = this.getMouseCoordinatesRelativeToCircleCenter(event);
-        let angle: Radians = this.rectilinearCoordinatesToPolarCoordinates(mouseAt.x, mouseAt.y);
+        let svgElement = this.getElementsByTagName('svg')[0];
+        let mouseAt = getMouseCoordinatesRelativeToCircleCenter(event, svgElement);
+        let angle: Radians = rectilinearCoordinatesToPolarCoordinates(mouseAt.x, mouseAt.y);
         let i = this.slices.findIndex(s => s.rotateBy > angle);
         return i < 0 ? this.slices.length - 1 : i - 1;
     }
@@ -202,9 +206,10 @@ export class PieChart extends HTMLElement {
         this.selectedYFields = fieldnames;
         this.render();
     }
+}
 
-    static template({ size, data, diameter, fullCircle, slices, radius, colors, rotateEntirePie, radiansToDegrees, hoveringOver, fontScalingFactor, yFields }: PieChart) {
-        return /*html*/`
+function template({ size, data, slices, colors, hoveringOver }: PieChart) {
+    return /*html*/`
 <div id="svgPie" class="wholeChart">
     ${data && data.length && radius && diameter ? `
         <svg height="100%" viewBox="-${diameter}, -${diameter}, ${2 * diameter}, ${2 * diameter}" preserveAspectRatio="xMinYMid meet">
@@ -217,7 +222,7 @@ export class PieChart extends HTMLElement {
                 </circle>
             `).join('')}
                 ${hoveringOver > -1 && slices[hoveringOver]
-                    ? /*html*/`
+                ? /*html*/`
                     <circle id="fadeoutOverlay" cx="0" cy="0" r="${diameter}" fill-opacity="0.45" fill="white"></circle>
                     <circle id="highlightedSlice"
                             cx="0" cy="0" r="${radius}"
@@ -258,9 +263,6 @@ export class PieChart extends HTMLElement {
         text-anchor: middle;
     }
 </style>`;
-
-    }
 }
 
 customElements.define('pie-chart', PieChart);
-
