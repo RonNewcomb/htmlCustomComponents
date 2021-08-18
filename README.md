@@ -7,3 +7,7 @@ A: The caller/sender fires a custom event with a payload. The receiver/callee ex
 
 Q: How's it done with built-in components?
 A: The only two "native components" that talk to other components are `label` and `form`. The former through a `for` attribute holding the id of the other component to whom to shift focus, and the latter via querySelector on the three component types with a `.value` property.
+
+See also:  
+[The Many Ways of Templates in HTML Custom Elements](https://dev.to/ronnewcomb/the-many-ways-of-templates-in-html-custom-elements-41i7)  
+[Missing the Message Bus in HTML Custom Elements (and Microfrontends in General)](https://dev.to/ronnewcomb/missing-the-message-bus-in-html-custom-elements-and-micro-frontends-in-general-1582)  
