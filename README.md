@@ -11,3 +11,8 @@ A: The only two "native components" that talk to other components are `label` an
 ## running
 
 In a command prompt (not Powershell) try `tsc --watch`. Needs IIS or other webserver.
+
+## See also:
+
+[The Many Ways of Templates in HTML Custom Elements](https://dev.to/ronnewcomb/the-many-ways-of-templates-in-html-custom-elements-41i7)  
+[Missing the Message Bus in HTML Custom Elements (and Microfrontends in General)](https://dev.to/ronnewcomb/missing-the-message-bus-in-html-custom-elements-and-micro-frontends-in-general-1582)
