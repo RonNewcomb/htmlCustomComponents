@@ -7,3 +7,7 @@ A: The caller/sender fires a custom event with a payload. The receiver/callee ex
 
 Q: How's it done with built-in components?
 A: The only two "native components" that talk to other components are `label` and `form`. The former through a `for` attribute holding the id of the other component to whom to shift focus, and the latter via querySelector on the three component types with a `.value` property.
+
+## running
+
+In a command prompt (not Powershell) try `tsc --watch`. Needs IIS or other webserver.
